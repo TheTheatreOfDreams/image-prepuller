@@ -12,8 +12,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	imagev1 "github.com/TheTheatreOfDreams/image-prepuller/api/v1"
-	"github.com/TheTheatreOfDreams/image-prepuller/internal/controller"
+	imagev1 "github.com/TheTheatreOfDreams/prepuller/api/v1"
+	"github.com/TheTheatreOfDreams/prepuller/internal/controller"
 )
 
 var scheme = runtime.NewScheme()
@@ -42,7 +42,7 @@ func main() {
 		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "image-prepuller.theatreofdreams.io",
+		LeaderElectionID:       "prepuller.theatreofdreams.io",
 	})
 	if err != nil {
 		ctrl.Log.Error(err, "unable to start manager")
@@ -50,8 +50,9 @@ func main() {
 	}
 
 	if err := (&controller.PodReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:           mgr.GetClient(),
+		Scheme:           mgr.GetScheme(),
+		PlatformResolver: controller.RegistryResolverFromEnv(),
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller", "controller", "Pod")
 		os.Exit(1)

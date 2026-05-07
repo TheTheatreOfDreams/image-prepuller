@@ -16,7 +16,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/thetheatreofdreams/image-prepuller
+  IMAGE_NAME: ghcr.io/thetheatreofdreams/prepuller
 
 jobs:
   publish:
@@ -63,4 +63,3 @@ jobs:
         platforms: linux/amd64,linux/arm64
         tags: |
           ${{ env.IMAGE_NAME }}:${{ steps.image.outputs.tag }}
-          ${{ env.IMAGE_NAME }}:latest

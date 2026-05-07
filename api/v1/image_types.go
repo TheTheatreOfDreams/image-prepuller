@@ -6,6 +6,8 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 type ImageSpec struct {
 	// Reference is the original image reference as it appeared on a Pod.
 	Reference string `json:"reference"`
+	// Platforms maps platform names such as "linux/arm64" to their image digest or pinned reference.
+	Platforms map[string]string `json:"platforms,omitempty"`
 }
 
 // ImageStatus records where and when an image was most recently observed.

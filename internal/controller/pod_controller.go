@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"time"
@@ -19,18 +20,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	imagev1 "github.com/TheTheatreOfDreams/image-prepuller/api/v1"
+	imagev1 "github.com/TheTheatreOfDreams/prepuller/api/v1"
 )
 
 type PodReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
-	Now    func() time.Time
+	Scheme           *runtime.Scheme
+	Now              func() time.Time
+	PlatformResolver ImagePlatformResolver
 }
 
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
-// +kubebuilder:rbac:groups=image-prepuller.theatreofdreams.io,resources=images,verbs=get;list;watch;create;update;patch
-// +kubebuilder:rbac:groups=image-prepuller.theatreofdreams.io,resources=images/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=prepuller.theatreofdreams.io,resources=images,verbs=get;list;watch;create;update;patch
+// +kubebuilder:rbac:groups=prepuller.theatreofdreams.io,resources=images/status,verbs=get;update;patch
 
 func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
@@ -44,7 +46,14 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 
 	for _, reference := range imageReferencesFromPod(&pod) {
-		if err := r.ensureImage(ctx, reference); err != nil {
+		if err := r.ensureImage(ctx, reference, nil); err != nil {
+			return ctrl.Result{}, err
+		}
+		platforms, err := r.resolvePlatforms(ctx, reference)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		if err := r.ensureImage(ctx, reference, platforms); err != nil {
 			return ctrl.Result{}, err
 		}
 		if err := r.recordObservation(ctx, reference, pod.Namespace, pod.Name); err != nil {
@@ -62,7 +71,7 @@ func (r *PodReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *PodReconciler) ensureImage(ctx context.Context, reference string) error {
+func (r *PodReconciler) ensureImage(ctx context.Context, reference string, platforms map[string]string) error {
 	name := imageResourceName(reference)
 	var image imagev1.Image
 	if err := r.Get(ctx, types.NamespacedName{Name: name}, &image); err != nil {
@@ -76,11 +85,27 @@ func (r *PodReconciler) ensureImage(ctx context.Context, reference string) error
 				Kind:       "Image",
 			},
 			ObjectMeta: metav1.ObjectMeta{Name: name},
-			Spec:       imagev1.ImageSpec{Reference: reference},
+			Spec: imagev1.ImageSpec{
+				Reference: reference,
+				Platforms: platforms,
+			},
 		}
 		if err := r.Create(ctx, &image); err != nil && !apierrors.IsAlreadyExists(err) {
 			return fmt.Errorf("create image %q: %w", name, err)
 		}
+		return nil
+	}
+
+	if image.Spec.Reference == reference && (platforms == nil || maps.Equal(image.Spec.Platforms, platforms)) {
+		return nil
+	}
+
+	image.Spec.Reference = reference
+	if platforms != nil {
+		image.Spec.Platforms = platforms
+	}
+	if err := r.Update(ctx, &image); err != nil {
+		return fmt.Errorf("update image %q spec: %w", name, err)
 	}
 	return nil
 }
@@ -116,6 +141,19 @@ func (r *PodReconciler) now() time.Time {
 		return r.Now()
 	}
 	return time.Now().UTC()
+}
+
+func (r *PodReconciler) resolvePlatforms(ctx context.Context, reference string) (map[string]string, error) {
+	resolver := r.PlatformResolver
+	if resolver == nil {
+		resolver = RegistryResolverFromEnv()
+	}
+
+	platforms, err := resolver.ResolvePlatforms(ctx, reference)
+	if err != nil {
+		return nil, fmt.Errorf("resolve platforms for %q: %w", reference, err)
+	}
+	return platforms, nil
 }
 
 func imageReferencesFromPod(pod *corev1.Pod) []string {

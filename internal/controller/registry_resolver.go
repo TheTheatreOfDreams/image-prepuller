@@ -81,7 +81,7 @@ func platformsFromIndex(ref name.Reference, index v1.ImageIndex) (map[string]str
 
 	platforms := make(map[string]string, len(manifest.Manifests))
 	for _, descriptor := range manifest.Manifests {
-		if descriptor.Platform == nil {
+		if !isRunnablePlatform(descriptor.Platform) {
 			continue
 		}
 		platforms[platformKey(*descriptor.Platform)] = pinnedReference(ref, descriptor.Digest)
@@ -104,10 +104,18 @@ func platformFromImage(ref name.Reference, image v1.Image) (map[string]string, e
 		Architecture: config.Architecture,
 		Variant:      config.Variant,
 	}
-	if platform.OS == "" || platform.Architecture == "" {
-		return map[string]string{"unknown/unknown": pinnedReference(ref, digest)}, nil
+	if !isRunnablePlatform(&platform) {
+		return map[string]string{}, nil
 	}
 	return map[string]string{platformKey(platform): pinnedReference(ref, digest)}, nil
+}
+
+func isRunnablePlatform(platform *v1.Platform) bool {
+	return platform != nil &&
+		platform.OS != "" &&
+		platform.Architecture != "" &&
+		platform.OS != "unknown" &&
+		platform.Architecture != "unknown"
 }
 
 func platformKey(platform v1.Platform) string {

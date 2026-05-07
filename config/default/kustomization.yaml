@@ -9,4 +9,4 @@ resources:
 images:
 - name: controller
   newName: ghcr.io/thetheatreofdreams/image-prepuller
-  newTag: latest
+  newTag: v0.0.1

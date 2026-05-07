@@ -50,8 +50,9 @@ func main() {
 	}
 
 	if err := (&controller.PodReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:           mgr.GetClient(),
+		Scheme:           mgr.GetScheme(),
+		PlatformResolver: controller.RegistryResolverFromEnv(),
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller", "controller", "Pod")
 		os.Exit(1)

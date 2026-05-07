@@ -146,7 +146,7 @@ func (r *PodReconciler) now() time.Time {
 func (r *PodReconciler) resolvePlatforms(ctx context.Context, reference string) (map[string]string, error) {
 	resolver := r.PlatformResolver
 	if resolver == nil {
-		resolver = RegistryResolver{}
+		resolver = RegistryResolverFromEnv()
 	}
 
 	platforms, err := resolver.ResolvePlatforms(ctx, reference)

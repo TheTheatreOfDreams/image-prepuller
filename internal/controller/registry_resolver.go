@@ -14,7 +14,10 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 )
 
-const insecureSkipVerifyRegistriesEnv = "PREPULLER_INSECURE_SKIP_VERIFY_REGISTRIES"
+const (
+	InsecureSkipVerifyRegistriesEnv = "PREPULLER_INSECURE_SKIP_VERIFY_REGISTRIES"
+	TargetPlatformsEnv              = "PREPULLER_PLATFORMS"
+)
 
 type ImagePlatformResolver interface {
 	ResolvePlatforms(ctx context.Context, reference string) (map[string]string, error)
@@ -22,11 +25,20 @@ type ImagePlatformResolver interface {
 
 type RegistryResolver struct {
 	InsecureSkipVerifyRegistries map[string]struct{}
+	TargetPlatforms              map[string]struct{}
 }
 
 func RegistryResolverFromEnv() RegistryResolver {
+	return RegistryResolverFromConfig(
+		os.Getenv(TargetPlatformsEnv),
+		os.Getenv(InsecureSkipVerifyRegistriesEnv),
+	)
+}
+
+func RegistryResolverFromConfig(targetPlatforms, insecureSkipVerifyRegistries string) RegistryResolver {
 	return RegistryResolver{
-		InsecureSkipVerifyRegistries: parseRegistrySet(os.Getenv(insecureSkipVerifyRegistriesEnv)),
+		InsecureSkipVerifyRegistries: parseSet(insecureSkipVerifyRegistries),
+		TargetPlatforms:              parseSet(targetPlatforms),
 	}
 }
 
@@ -47,13 +59,13 @@ func (r RegistryResolver) ResolvePlatforms(ctx context.Context, reference string
 		if err != nil {
 			return nil, fmt.Errorf("load image index for %q: %w", reference, err)
 		}
-		return platformsFromIndex(ref, index)
+		return r.platformsFromIndex(ref, index)
 	case descriptor.MediaType.IsImage():
 		image, err := descriptor.Image()
 		if err != nil {
 			return nil, fmt.Errorf("load image manifest for %q: %w", reference, err)
 		}
-		return platformFromImage(ref, image)
+		return r.platformFromImage(ref, image)
 	default:
 		return nil, fmt.Errorf("unsupported media type %q for %q", descriptor.MediaType, reference)
 	}
@@ -73,7 +85,7 @@ func (r RegistryResolver) remoteOptions(ctx context.Context, ref name.Reference)
 	return options
 }
 
-func platformsFromIndex(ref name.Reference, index v1.ImageIndex) (map[string]string, error) {
+func (r RegistryResolver) platformsFromIndex(ref name.Reference, index v1.ImageIndex) (map[string]string, error) {
 	manifest, err := index.IndexManifest()
 	if err != nil {
 		return nil, fmt.Errorf("read image index manifest: %w", err)
@@ -84,12 +96,16 @@ func platformsFromIndex(ref name.Reference, index v1.ImageIndex) (map[string]str
 		if !isRunnablePlatform(descriptor.Platform) {
 			continue
 		}
-		platforms[platformKey(*descriptor.Platform)] = pinnedReference(ref, descriptor.Digest)
+		key := platformKey(*descriptor.Platform)
+		if !r.wantsPlatform(key) {
+			continue
+		}
+		platforms[key] = pinnedReference(ref, descriptor.Digest)
 	}
 	return platforms, nil
 }
 
-func platformFromImage(ref name.Reference, image v1.Image) (map[string]string, error) {
+func (r RegistryResolver) platformFromImage(ref name.Reference, image v1.Image) (map[string]string, error) {
 	config, err := image.ConfigFile()
 	if err != nil {
 		return nil, fmt.Errorf("read image config: %w", err)
@@ -107,7 +123,19 @@ func platformFromImage(ref name.Reference, image v1.Image) (map[string]string, e
 	if !isRunnablePlatform(&platform) {
 		return map[string]string{}, nil
 	}
-	return map[string]string{platformKey(platform): pinnedReference(ref, digest)}, nil
+	key := platformKey(platform)
+	if !r.wantsPlatform(key) {
+		return map[string]string{}, nil
+	}
+	return map[string]string{key: pinnedReference(ref, digest)}, nil
+}
+
+func (r RegistryResolver) wantsPlatform(platform string) bool {
+	if len(r.TargetPlatforms) == 0 {
+		return true
+	}
+	_, ok := r.TargetPlatforms[platform]
+	return ok
 }
 
 func isRunnablePlatform(platform *v1.Platform) bool {
@@ -130,14 +158,14 @@ func pinnedReference(ref name.Reference, digest v1.Hash) string {
 	return ref.Context().Digest(digest.String()).String()
 }
 
-func parseRegistrySet(value string) map[string]struct{} {
-	registries := map[string]struct{}{}
-	for _, registry := range strings.Split(value, ",") {
-		registry = strings.TrimSpace(registry)
-		if registry == "" {
+func parseSet(value string) map[string]struct{} {
+	items := map[string]struct{}{}
+	for _, item := range strings.Split(value, ",") {
+		item = strings.TrimSpace(item)
+		if item == "" {
 			continue
 		}
-		registries[registry] = struct{}{}
+		items[item] = struct{}{}
 	}
-	return registries
+	return items
 }

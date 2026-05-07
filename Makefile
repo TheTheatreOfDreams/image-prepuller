@@ -3,6 +3,8 @@ KUBE_CONTEXT ?= kind-$(KIND_CLUSTER_NAME)
 KUBECTL ?= kubectl --context "$(KUBE_CONTEXT)"
 IMG ?= ghcr.io/thetheatreofdreams/prepuller:v0.0.1
 GHCR_SECRET_NAME ?= ghcr
+PLATFORMS ?= linux/amd64,linux/arm64
+INSECURE_SKIP_VERIFY_REGISTRIES ?= registry.k8s.io
 
 .PHONY: help
 help:
@@ -42,6 +44,12 @@ kind-load:
 .PHONY: deploy
 deploy:
 	$(KUBECTL) apply -k config/default
+ifneq ($(strip $(PLATFORMS)),)
+	$(KUBECTL) -n prepuller-system set env deployment/prepuller-controller-manager PREPULLER_PLATFORMS="$(PLATFORMS)"
+endif
+ifneq ($(strip $(INSECURE_SKIP_VERIFY_REGISTRIES)),)
+	$(KUBECTL) -n prepuller-system set env deployment/prepuller-controller-manager PREPULLER_INSECURE_SKIP_VERIFY_REGISTRIES="$(INSECURE_SKIP_VERIFY_REGISTRIES)"
+endif
 	$(KUBECTL) -n prepuller-system rollout status deployment/prepuller-controller-manager --timeout=120s
 
 .PHONY: deploy-private
@@ -49,6 +57,12 @@ deploy-private:
 	$(KUBECTL) apply -k config/default
 	$(MAKE) ghcr-secret
 	$(KUBECTL) -n prepuller-system patch serviceaccount prepuller-controller-manager --type merge -p '{"imagePullSecrets":[{"name":"$(GHCR_SECRET_NAME)"}]}'
+ifneq ($(strip $(PLATFORMS)),)
+	$(KUBECTL) -n prepuller-system set env deployment/prepuller-controller-manager PREPULLER_PLATFORMS="$(PLATFORMS)"
+endif
+ifneq ($(strip $(INSECURE_SKIP_VERIFY_REGISTRIES)),)
+	$(KUBECTL) -n prepuller-system set env deployment/prepuller-controller-manager PREPULLER_INSECURE_SKIP_VERIFY_REGISTRIES="$(INSECURE_SKIP_VERIFY_REGISTRIES)"
+endif
 	$(KUBECTL) -n prepuller-system rollout restart deployment/prepuller-controller-manager
 	$(KUBECTL) -n prepuller-system rollout status deployment/prepuller-controller-manager --timeout=120s
 

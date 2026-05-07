@@ -31,3 +31,15 @@ go test ./...
 ```sh
 kubectl apply -k config/default
 ```
+
+Limit resolved platforms with `PREPULLER_PLATFORMS`:
+
+```sh
+PREPULLER_PLATFORMS=linux/amd64,linux/arm64 /manager
+```
+
+For local kind deploys:
+
+```sh
+make kind-up PLATFORMS=linux/amd64,linux/arm64
+```

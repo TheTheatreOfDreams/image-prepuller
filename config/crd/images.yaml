@@ -41,6 +41,10 @@ spec:
               reference:
                 type: string
                 minLength: 1
+              platforms:
+                type: object
+                additionalProperties:
+                  type: string
           status:
             type: object
             properties:

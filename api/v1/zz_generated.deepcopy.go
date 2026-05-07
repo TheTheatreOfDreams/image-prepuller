@@ -59,6 +59,13 @@ func (in *ImageList) DeepCopyObject() runtime.Object {
 
 func (in *ImageSpec) DeepCopyInto(out *ImageSpec) {
 	*out = *in
+	if in.Platforms != nil {
+		in, out := &in.Platforms, &out.Platforms
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 }
 
 func (in *ImageSpec) DeepCopy() *ImageSpec {

@@ -4,3 +4,6 @@ metadata:
   name: img-sample
 spec:
   reference: nginx:1.27
+  platforms:
+    linux/amd64: nginx@sha256:...
+    linux/arm64: nginx@sha256:...

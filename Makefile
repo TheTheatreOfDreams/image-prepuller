@@ -1,7 +1,7 @@
-KIND_CLUSTER_NAME ?= image-prepuller
+KIND_CLUSTER_NAME ?= prepuller
 KUBE_CONTEXT ?= kind-$(KIND_CLUSTER_NAME)
 KUBECTL ?= kubectl --context "$(KUBE_CONTEXT)"
-IMG ?= ghcr.io/thetheatreofdreams/image-prepuller:v0.0.1
+IMG ?= ghcr.io/thetheatreofdreams/prepuller:v0.0.1
 GHCR_SECRET_NAME ?= ghcr
 
 .PHONY: help
@@ -42,15 +42,15 @@ kind-load:
 .PHONY: deploy
 deploy:
 	$(KUBECTL) apply -k config/default
-	$(KUBECTL) -n image-prepuller-system rollout status deployment/image-prepuller-controller-manager --timeout=120s
+	$(KUBECTL) -n prepuller-system rollout status deployment/prepuller-controller-manager --timeout=120s
 
 .PHONY: deploy-private
 deploy-private:
 	$(KUBECTL) apply -k config/default
 	$(MAKE) ghcr-secret
-	$(KUBECTL) -n image-prepuller-system patch serviceaccount image-prepuller-controller-manager --type merge -p '{"imagePullSecrets":[{"name":"$(GHCR_SECRET_NAME)"}]}'
-	$(KUBECTL) -n image-prepuller-system rollout restart deployment/image-prepuller-controller-manager
-	$(KUBECTL) -n image-prepuller-system rollout status deployment/image-prepuller-controller-manager --timeout=120s
+	$(KUBECTL) -n prepuller-system patch serviceaccount prepuller-controller-manager --type merge -p '{"imagePullSecrets":[{"name":"$(GHCR_SECRET_NAME)"}]}'
+	$(KUBECTL) -n prepuller-system rollout restart deployment/prepuller-controller-manager
+	$(KUBECTL) -n prepuller-system rollout status deployment/prepuller-controller-manager --timeout=120s
 
 .PHONY: ghcr-secret
 ghcr-secret:
@@ -60,8 +60,8 @@ endif
 ifndef GHCR_TOKEN
 	$(error GHCR_TOKEN is required. Use a GitHub token with read:packages)
 endif
-	$(KUBECTL) create namespace image-prepuller-system --dry-run=client -o yaml | $(KUBECTL) apply -f -
-	$(KUBECTL) -n image-prepuller-system create secret docker-registry "$(GHCR_SECRET_NAME)" \
+	$(KUBECTL) create namespace prepuller-system --dry-run=client -o yaml | $(KUBECTL) apply -f -
+	$(KUBECTL) -n prepuller-system create secret docker-registry "$(GHCR_SECRET_NAME)" \
 		--docker-server=ghcr.io \
 		--docker-username="$(GHCR_USERNAME)" \
 		--docker-password="$(GHCR_TOKEN)" \
@@ -69,10 +69,10 @@ endif
 
 .PHONY: auth-check
 auth-check:
-	$(KUBECTL) auth can-i list pods --as=system:serviceaccount:image-prepuller-system:image-prepuller-controller-manager
-	$(KUBECTL) auth can-i watch pods --as=system:serviceaccount:image-prepuller-system:image-prepuller-controller-manager
-	$(KUBECTL) auth can-i list images.image-prepuller.theatreofdreams.io --as=system:serviceaccount:image-prepuller-system:image-prepuller-controller-manager
-	$(KUBECTL) auth can-i watch images.image-prepuller.theatreofdreams.io --as=system:serviceaccount:image-prepuller-system:image-prepuller-controller-manager
+	$(KUBECTL) auth can-i list pods --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
+	$(KUBECTL) auth can-i watch pods --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
+	$(KUBECTL) auth can-i list images.prepuller.theatreofdreams.io --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
+	$(KUBECTL) auth can-i watch images.prepuller.theatreofdreams.io --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
 
 .PHONY: deploy-nginx
 deploy-nginx:
@@ -81,7 +81,7 @@ deploy-nginx:
 
 .PHONY: images
 images:
-	$(KUBECTL) get images.image-prepuller.theatreofdreams.io
+	$(KUBECTL) get images.prepuller.theatreofdreams.io
 
 .PHONY: kind-delete
 kind-delete:

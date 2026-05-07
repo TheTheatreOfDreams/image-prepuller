@@ -16,7 +16,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/thetheatreofdreams/image-prepuller
+  IMAGE_NAME: ghcr.io/thetheatreofdreams/prepuller
 
 jobs:
   publish:

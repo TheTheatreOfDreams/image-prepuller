@@ -14,7 +14,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 )
 
-const insecureSkipVerifyRegistriesEnv = "IMAGE_PREPULLER_INSECURE_SKIP_VERIFY_REGISTRIES"
+const insecureSkipVerifyRegistriesEnv = "PREPULLER_INSECURE_SKIP_VERIFY_REGISTRIES"
 
 type ImagePlatformResolver interface {
 	ResolvePlatforms(ctx context.Context, reference string) (map[string]string, error)

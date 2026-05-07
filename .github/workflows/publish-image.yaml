@@ -63,4 +63,3 @@ jobs:
         platforms: linux/amd64,linux/arm64
         tags: |
           ${{ env.IMAGE_NAME }}:${{ steps.image.outputs.tag }}
-          ${{ env.IMAGE_NAME }}:latest

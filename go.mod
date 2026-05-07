@@ -1,4 +1,4 @@
-module github.com/TheTheatreOfDreams/image-prepuller
+module github.com/TheTheatreOfDreams/prepuller
 
 go 1.25.0
 

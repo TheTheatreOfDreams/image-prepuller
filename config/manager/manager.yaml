@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: image-prepuller-controller-manager
+  name: prepuller-controller-manager
   labels:
-    app.kubernetes.io/name: image-prepuller
+    app.kubernetes.io/name: prepuller
     app.kubernetes.io/component: controller-manager
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: image-prepuller
+      app.kubernetes.io/name: prepuller
       app.kubernetes.io/component: controller-manager
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: image-prepuller
+        app.kubernetes.io/name: prepuller
         app.kubernetes.io/component: controller-manager
     spec:
-      serviceAccountName: image-prepuller-controller-manager
+      serviceAccountName: prepuller-controller-manager
       securityContext:
         runAsNonRoot: true
       containers:

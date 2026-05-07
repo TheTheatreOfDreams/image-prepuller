@@ -20,7 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	imagev1 "github.com/TheTheatreOfDreams/image-prepuller/api/v1"
+	imagev1 "github.com/TheTheatreOfDreams/prepuller/api/v1"
 )
 
 type PodReconciler struct {
@@ -31,8 +31,8 @@ type PodReconciler struct {
 }
 
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
-// +kubebuilder:rbac:groups=image-prepuller.theatreofdreams.io,resources=images,verbs=get;list;watch;create;update;patch
-// +kubebuilder:rbac:groups=image-prepuller.theatreofdreams.io,resources=images/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=prepuller.theatreofdreams.io,resources=images,verbs=get;list;watch;create;update;patch
+// +kubebuilder:rbac:groups=prepuller.theatreofdreams.io,resources=images/status,verbs=get;update;patch
 
 func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)

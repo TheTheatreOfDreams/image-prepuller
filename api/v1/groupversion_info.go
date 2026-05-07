@@ -1,4 +1,4 @@
-// Package v1 contains API Schema definitions for the image-prepuller v1 API group.
+// Package v1 contains API Schema definitions for the prepuller v1 API group.
 package v1
 
 import (
@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Group   = "image-prepuller.theatreofdreams.io"
+	Group   = "prepuller.theatreofdreams.io"
 	Version = "v1alpha1"
 )
 

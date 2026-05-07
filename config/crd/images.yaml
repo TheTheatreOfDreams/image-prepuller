@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: images.image-prepuller.theatreofdreams.io
+  name: images.prepuller.theatreofdreams.io
 spec:
-  group: image-prepuller.theatreofdreams.io
+  group: prepuller.theatreofdreams.io
   names:
     kind: Image
     listKind: ImageList

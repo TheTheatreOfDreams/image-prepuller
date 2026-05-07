@@ -1,12 +1,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: image-prepuller-manager-rolebinding
+  name: prepuller-manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: image-prepuller-manager-role
+  name: prepuller-manager-role
 subjects:
 - kind: ServiceAccount
-  name: image-prepuller-controller-manager
-  namespace: image-prepuller-system
+  name: prepuller-controller-manager
+  namespace: prepuller-system

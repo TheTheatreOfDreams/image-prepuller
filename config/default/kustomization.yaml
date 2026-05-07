@@ -1,4 +1,4 @@
-namespace: image-prepuller-system
+namespace: prepuller-system
 
 resources:
 - namespace.yaml
@@ -8,5 +8,5 @@ resources:
 
 images:
 - name: controller
-  newName: ghcr.io/thetheatreofdreams/image-prepuller
+  newName: ghcr.io/thetheatreofdreams/prepuller
   newTag: v0.0.1

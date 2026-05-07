@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: image-prepuller-manager-role
+  name: prepuller-manager-role
 rules:
 - apiGroups:
   - ""
@@ -12,7 +12,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - image-prepuller.theatreofdreams.io
+  - prepuller.theatreofdreams.io
   resources:
   - images
   verbs:
@@ -23,7 +23,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - image-prepuller.theatreofdreams.io
+  - prepuller.theatreofdreams.io
   resources:
   - images/status
   verbs:

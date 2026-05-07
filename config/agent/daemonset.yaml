@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: prepuller-agent
+  labels:
+    app.kubernetes.io/name: prepuller
+    app.kubernetes.io/component: node-agent
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prepuller
+      app.kubernetes.io/component: node-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prepuller
+        app.kubernetes.io/component: node-agent
+    spec:
+      serviceAccountName: prepuller-agent
+      hostNetwork: true
+      tolerations:
+      - operator: Exists
+      containers:
+      - name: agent
+        image: controller:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - /agent
+        args:
+        - --runtime-endpoint=unix:///run/containerd/containerd.sock
+        - --state-file=/var/lib/prepuller/state.json
+        - --sync-period=30s
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: PREPULLER_NODE_SELECTOR
+          value: ""
+        - name: PREPULLER_SEED_NODE_SELECTOR
+          value: ""
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        volumeMounts:
+        - name: containerd-socket
+          mountPath: /run/containerd/containerd.sock
+        - name: state
+          mountPath: /var/lib/prepuller
+      volumes:
+      - name: containerd-socket
+        hostPath:
+          path: /run/containerd/containerd.sock
+          type: Socket
+      - name: state
+        hostPath:
+          path: /var/lib/prepuller
+          type: DirectoryOrCreate

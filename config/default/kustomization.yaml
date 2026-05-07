@@ -1,0 +1,12 @@
+namespace: image-prepuller-system
+
+resources:
+- namespace.yaml
+- ../crd
+- ../rbac
+- ../manager
+
+images:
+- name: controller
+  newName: ghcr.io/thetheatreofdreams/image-prepuller
+  newTag: latest

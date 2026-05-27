@@ -4,8 +4,8 @@ WORKDIR /workspace
 COPY go.mod go.sum ./
 RUN go mod download
 
-ARG TARGETOS=linux
-ARG TARGETARCH=arm64
+ARG TARGETOS
+ARG TARGETARCH
 COPY . .
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /manager ./cmd/manager
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /agent ./cmd/agent

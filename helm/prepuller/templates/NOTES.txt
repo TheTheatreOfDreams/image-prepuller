@@ -1,0 +1,19 @@
+prepuller has been installed in namespace {{ .Release.Namespace }}.
+
+Controller placement is configured with:
+  controller.nodeSelector
+  controller.tolerations
+  controller.affinity
+
+Agent scheduling is configured with:
+  agent.replicas
+  agent.nodeSelector
+  agent.tolerations
+  agent.affinity
+
+Agent prepulling decisions are configured with:
+  agent.managedNodeSelector
+  agent.seedNodeSelector
+
+List discovered images with:
+  kubectl get images.prepuller.theatreofdreams.io

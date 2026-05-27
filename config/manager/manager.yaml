@@ -26,6 +26,8 @@ spec:
         imagePullPolicy: IfNotPresent
         args:
         - --leader-elect
+        # Set to a comma-separated list such as "linux/amd64,linux/arm64" to limit resolved platforms.
+        # - --platforms=linux/amd64,linux/arm64
         command:
         - /manager
         ports:

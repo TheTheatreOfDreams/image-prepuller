@@ -1,0 +1,119 @@
+{{- if .Values.rbac.create }}
+{{- if .Values.controller.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "prepuller.fullname" . }}-manager-role
+  labels:
+    {{- include "prepuller.labels" . | nindent 4 }}
+    app.kubernetes.io/component: controller-manager
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - prepuller.theatreofdreams.io
+  resources:
+  - images
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - prepuller.theatreofdreams.io
+  resources:
+  - images/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "prepuller.fullname" . }}-manager-rolebinding
+  labels:
+    {{- include "prepuller.labels" . | nindent 4 }}
+    app.kubernetes.io/component: controller-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "prepuller.fullname" . }}-manager-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "prepuller.controllerServiceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+---
+{{- end }}
+{{- if .Values.agent.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "prepuller.fullname" . }}-agent-role
+  labels:
+    {{- include "prepuller.labels" . | nindent 4 }}
+    app.kubernetes.io/component: node-agent
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - prepuller.theatreofdreams.io
+  resources:
+  - images
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "prepuller.fullname" . }}-agent-rolebinding
+  labels:
+    {{- include "prepuller.labels" . | nindent 4 }}
+    app.kubernetes.io/component: node-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "prepuller.fullname" . }}-agent-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "prepuller.agentServiceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}

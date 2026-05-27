@@ -31,3 +31,35 @@ go test ./...
 ```sh
 kubectl apply -k config/default
 ```
+
+The default deployment includes:
+
+- a manager Deployment that discovers images from Pods and resolves platform digests into `Image` CRs
+- a privileged node-agent DaemonSet that pulls desired digests into matching node runtimes
+- conservative node GC that removes only images previously pulled by prepuller and no longer desired
+
+Limit resolved platforms with `PREPULLER_PLATFORMS`:
+
+```sh
+PREPULLER_PLATFORMS=linux/amd64,linux/arm64 /manager
+```
+
+For local kind deploys:
+
+```sh
+make kind-up PLATFORMS=linux/amd64,linux/arm64
+```
+
+The kind cluster is created with `config/kind/cluster.yaml`, which configures node containerd to skip TLS verification for `registry.k8s.io`. This is required for the node agent path because image pulls happen through CRI on the node runtime, not through the manager's registry client.
+
+If the kind cluster already exists, apply the same containerd setting in-place:
+
+```sh
+make kind-containerd-insecure
+```
+
+Limit node-agent activity with `PREPULLER_NODE_SELECTOR`:
+
+```sh
+PREPULLER_NODE_SELECTOR=kubernetes.io/os=linux /agent
+```

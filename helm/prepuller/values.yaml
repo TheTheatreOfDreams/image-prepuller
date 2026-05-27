@@ -1,0 +1,68 @@
+image:
+  repository: ghcr.io/thetheatreofdreams/prepuller
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+controller:
+  enabled: true
+  replicas: 1
+  leaderElect: true
+  platforms:
+    - linux/amd64
+    - linux/arm64
+  insecureSkipVerifyRegistries:
+    - registry.k8s.io
+  imageTTL: ""
+  imageGCPeriod: ""
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 128Mi
+
+agent:
+  enabled: true
+  replicas: 1
+  runtimeEndpoint: unix:///run/containerd/containerd.sock
+  runtimeSocketHostPath: /run/containerd/containerd.sock
+  stateHostPath: /var/lib/prepuller
+  syncPeriod: 30s
+  # This selector is evaluated by the agent to decide whether this node should prepull.
+  managedNodeSelector: ""
+  # Seed nodes pull every platform digest from every Image CR.
+  seedNodeSelector: prepuller.theatreofdreams.io/seed=true
+  hostNetwork: true
+  privileged: true
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations:
+    - operator: Exists
+  # Agent pods always include hard pod anti-affinity so replicas run on separate nodes.
+  # Use this for optional nodeAffinity or podAffinity.
+  affinity: {}
+  resources: {}
+
+rbac:
+  create: true
+
+serviceAccount:
+  controller:
+    create: true
+    name: ""
+    annotations: {}
+  agent:
+    create: true
+    name: ""
+    annotations: {}

@@ -5,6 +5,7 @@ resources:
 - ../crd
 - ../rbac
 - ../manager
+- ../agent
 
 images:
 - name: controller

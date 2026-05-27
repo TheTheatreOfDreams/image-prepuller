@@ -1,0 +1,99 @@
+{{- if .Values.agent.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "prepuller.fullname" . }}-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "prepuller.labels" . | nindent 4 }}
+    app.kubernetes.io/component: node-agent
+spec:
+  replicas: {{ .Values.agent.replicas }}
+  selector:
+    matchLabels:
+      {{- include "prepuller.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: node-agent
+  template:
+    metadata:
+      labels:
+        {{- include "prepuller.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: node-agent
+        {{- with .Values.agent.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.agent.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "prepuller.agentServiceAccountName" . }}
+      hostNetwork: {{ .Values.agent.hostNetwork }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: agent
+        image: {{ include "prepuller.image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+        - /agent
+        args:
+        - --runtime-endpoint={{ .Values.agent.runtimeEndpoint }}
+        - --state-file=/var/lib/prepuller/state.json
+        - --sync-period={{ .Values.agent.syncPeriod }}
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: PREPULLER_NODE_SELECTOR
+          value: {{ .Values.agent.managedNodeSelector | quote }}
+        - name: PREPULLER_SEED_NODE_SELECTOR
+          value: {{ .Values.agent.seedNodeSelector | quote }}
+        securityContext:
+          privileged: {{ .Values.agent.privileged }}
+          runAsUser: 0
+        {{- with .Values.agent.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        - name: runtime-socket
+          mountPath: {{ .Values.agent.runtimeSocketHostPath }}
+        - name: state
+          mountPath: /var/lib/prepuller
+      volumes:
+      - name: runtime-socket
+        hostPath:
+          path: {{ .Values.agent.runtimeSocketHostPath }}
+          type: Socket
+      - name: state
+        hostPath:
+          path: {{ .Values.agent.stateHostPath }}
+          type: DirectoryOrCreate
+      {{- with .Values.agent.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+        {{- with .Values.agent.affinity.nodeAffinity }}
+        nodeAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.agent.affinity.podAffinity }}
+        podAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                {{- include "prepuller.selectorLabels" . | nindent 16 }}
+                app.kubernetes.io/component: node-agent
+            topologyKey: kubernetes.io/hostname
+      {{- with .Values.agent.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

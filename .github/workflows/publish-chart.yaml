@@ -1,0 +1,76 @@
+name: Publish chart
+
+on:
+  push:
+    tags:
+    - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Chart app tag to publish, for example v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  CHART_DIR: helm/prepuller
+  CHART_REPOSITORY: oci://ghcr.io/thetheatreofdreams/helm-charts
+
+jobs:
+  publish:
+    name: Package and push chart
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Resolve chart version
+      id: chart
+      env:
+        DISPATCH_TAG: ${{ inputs.tag }}
+      run: |
+        if [ -n "${DISPATCH_TAG}" ]; then
+          tag="${DISPATCH_TAG}"
+        else
+          tag="${GITHUB_REF_NAME}"
+        fi
+
+        if [ -z "${tag}" ]; then
+          echo "Unable to resolve chart tag" >&2
+          exit 1
+        fi
+
+        chart_version="${tag#v}"
+        if [ -z "${chart_version}" ] || [ "${chart_version}" = "${tag}" ]; then
+          echo "Chart tag must start with v, for example v0.1.0" >&2
+          exit 1
+        fi
+
+        echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+        echo "version=${chart_version}" >> "${GITHUB_OUTPUT}"
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v4
+
+    - name: Log in to GHCR
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+          --username "${{ github.actor }}" \
+          --password-stdin
+
+    - name: Lint chart
+      run: helm lint "${CHART_DIR}"
+
+    - name: Package chart
+      run: |
+        helm package "${CHART_DIR}" \
+          --version "${{ steps.chart.outputs.version }}" \
+          --app-version "${{ steps.chart.outputs.tag }}" \
+          --destination .
+
+    - name: Push chart
+      run: |
+        helm push "prepuller-${{ steps.chart.outputs.version }}.tgz" "${CHART_REPOSITORY}"

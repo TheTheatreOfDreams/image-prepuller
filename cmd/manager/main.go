@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -27,10 +28,18 @@ func main() {
 	var metricsAddr string
 	var probeAddr string
 	var enableLeaderElection bool
+	var platforms string
+	var insecureSkipVerifyRegistries string
+	var imageTTL time.Duration
+	var imageGCPeriod time.Duration
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election for controller manager.")
+	flag.StringVar(&platforms, "platforms", os.Getenv(controller.TargetPlatformsEnv), "Comma-separated platforms to resolve, for example linux/amd64,linux/arm64. Empty resolves all runnable platforms.")
+	flag.StringVar(&insecureSkipVerifyRegistries, "insecure-skip-verify-registries", os.Getenv(controller.InsecureSkipVerifyRegistriesEnv), "Comma-separated registries for which TLS verification is skipped. Use only in local/dev environments.")
+	flag.DurationVar(&imageTTL, "image-ttl", controller.DefaultImageTTL, "Delete Image CRs that have not been observed in cluster Pods for this duration.")
+	flag.DurationVar(&imageGCPeriod, "image-gc-period", time.Hour, "How often stale Image CR garbage collection runs.")
 	opts := zap.Options{Development: true}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
@@ -52,9 +61,18 @@ func main() {
 	if err := (&controller.PodReconciler{
 		Client:           mgr.GetClient(),
 		Scheme:           mgr.GetScheme(),
-		PlatformResolver: controller.RegistryResolverFromEnv(),
+		PlatformResolver: controller.RegistryResolverFromConfig(platforms, insecureSkipVerifyRegistries),
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller", "controller", "Pod")
+		os.Exit(1)
+	}
+
+	if err := mgr.Add(&controller.ImageGarbageCollector{
+		Client:     mgr.GetClient(),
+		TTL:        imageTTL,
+		SyncPeriod: imageGCPeriod,
+	}); err != nil {
+		ctrl.Log.Error(err, "unable to add image garbage collector")
 		os.Exit(1)
 	}
 

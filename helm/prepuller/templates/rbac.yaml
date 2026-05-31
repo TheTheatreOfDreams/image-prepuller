@@ -17,7 +17,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - prepuller.theatreofdreams.io
+  - prepuller.theatreofdreams.dev
   resources:
   - images
   verbs:
@@ -29,7 +29,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - prepuller.theatreofdreams.io
+  - prepuller.theatreofdreams.dev
   resources:
   - images/status
   verbs:
@@ -92,7 +92,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - prepuller.theatreofdreams.io
+  - prepuller.theatreofdreams.dev
   resources:
   - images
   verbs:

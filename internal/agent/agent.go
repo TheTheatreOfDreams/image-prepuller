@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	imagev1 "github.com/TheTheatreOfDreams/prepuller/api/v1"
+	imagev1 "github.com/TheatreOfDreamsDev/prepuller/api/v1"
 )
 
 type Options struct {

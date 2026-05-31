@@ -16,4 +16,4 @@ Agent prepulling decisions are configured with:
   agent.seedNodeSelector
 
 List discovered images with:
-  kubectl get images.prepuller.theatreofdreams.io
+  kubectl get images.prepuller.theatreofdreams.dev

@@ -21,7 +21,7 @@ In most clusters, set `agent.nodeSelector` broadly enough to cover the runtime f
 agent:
   nodeSelector:
     kubernetes.io/os: linux
-  managedNodeSelector: prepuller.theatreofdreams.io/enabled=true
+  managedNodeSelector: prepuller.theatreofdreams.dev/enabled=true
 ```
 
 For exactly two agents in a specific node group, each on a separate node:
@@ -31,7 +31,7 @@ agent:
   replicas: 2
   nodeSelector:
     nodepool: image-cache
-  managedNodeSelector: prepuller.theatreofdreams.io/enabled=true
+  managedNodeSelector: prepuller.theatreofdreams.dev/enabled=true
 ```
 
 ## Install
@@ -45,5 +45,5 @@ helm upgrade --install prepuller ./helm/prepuller --namespace prepuller-system -
 Seed nodes pull every platform digest from every `Image` CR. Label those nodes and keep `agent.seedNodeSelector` aligned:
 
 ```sh
-kubectl label node <node> prepuller.theatreofdreams.io/seed=true
+kubectl label node <node> prepuller.theatreofdreams.dev/seed=true
 ```

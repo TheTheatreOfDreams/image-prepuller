@@ -9,5 +9,5 @@ resources:
 
 images:
 - name: controller
-  newName: ghcr.io/thetheatreofdreams/prepuller
-  newTag: v0.0.1
+  newName: ghcr.io/theatreofdreamsdev/prepuller
+  newTag: v0.1.0

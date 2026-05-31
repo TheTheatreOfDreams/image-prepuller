@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Group   = "prepuller.theatreofdreams.io"
+	Group   = "prepuller.theatreofdreams.dev"
 	Version = "v1alpha1"
 )
 

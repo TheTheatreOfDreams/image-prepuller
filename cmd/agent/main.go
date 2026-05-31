@@ -12,8 +12,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	imagev1 "github.com/TheTheatreOfDreams/prepuller/api/v1"
-	"github.com/TheTheatreOfDreams/prepuller/internal/agent"
+	imagev1 "github.com/TheatreOfDreamsDev/prepuller/api/v1"
+	"github.com/TheatreOfDreamsDev/prepuller/internal/agent"
 )
 
 const (

@@ -20,7 +20,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - prepuller.theatreofdreams.io
+  - prepuller.theatreofdreams.dev
   resources:
   - images
   verbs:

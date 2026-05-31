@@ -1,5 +1,5 @@
 image:
-  repository: ghcr.io/thetheatreofdreams/prepuller
+  repository: ghcr.io/theatreofdreamsdev/prepuller
   tag: ""
   pullPolicy: IfNotPresent
 
@@ -41,7 +41,7 @@ agent:
   # This selector is evaluated by the agent to decide whether this node should prepull.
   managedNodeSelector: ""
   # Seed nodes pull every platform digest from every Image CR.
-  seedNodeSelector: prepuller.theatreofdreams.io/seed=true
+  seedNodeSelector: prepuller.theatreofdreams.dev/seed=true
   hostNetwork: true
   privileged: true
   podAnnotations: {}

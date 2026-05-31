@@ -17,7 +17,7 @@ permissions:
 
 env:
   CHART_DIR: helm/prepuller
-  CHART_REPOSITORY: oci://ghcr.io/thetheatreofdreams/helm-charts
+  CHART_REPOSITORY: oci://ghcr.io/theatreofdreamsdev/helm-charts
 
 jobs:
   publish:

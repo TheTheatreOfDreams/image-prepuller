@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	imagev1 "github.com/TheTheatreOfDreams/prepuller/api/v1"
+	imagev1 "github.com/TheatreOfDreamsDev/prepuller/api/v1"
 )
 
 type fakeRuntime struct {
@@ -139,7 +139,7 @@ func TestSyncSeedNodePullsAllPlatformImages(t *testing.T) {
 	node := node("node-a", map[string]string{
 		corev1.LabelOSStable:                "linux",
 		corev1.LabelArchStable:              "arm64",
-		"prepuller.theatreofdreams.io/seed": "true",
+		"prepuller.theatreofdreams.dev/seed": "true",
 	})
 	image := &imagev1.Image{ObjectMeta: metav1.ObjectMeta{Name: "img-nginx"}}
 	image.Spec.Platforms = map[string]string{
@@ -156,7 +156,7 @@ func TestSyncSeedNodePullsAllPlatformImages(t *testing.T) {
 		Options: Options{
 			NodeName:         "node-a",
 			NodeSelector:     "kubernetes.io/os=linux",
-			SeedNodeSelector: "prepuller.theatreofdreams.io/seed=true",
+			SeedNodeSelector: "prepuller.theatreofdreams.dev/seed=true",
 		},
 	}
 

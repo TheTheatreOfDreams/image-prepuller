@@ -2,12 +2,12 @@ KIND_CLUSTER_NAME ?= prepuller
 KIND_CONFIG ?= config/kind/cluster.yaml
 KUBE_CONTEXT ?= kind-$(KIND_CLUSTER_NAME)
 KUBECTL ?= kubectl --context "$(KUBE_CONTEXT)"
-IMG ?= ghcr.io/thetheatreofdreams/prepuller:v0.0.1
+IMG ?= ghcr.io/theatreofdreamsdev/prepuller:v0.1.0
 GHCR_SECRET_NAME ?= ghcr
 PLATFORMS ?= linux/amd64,linux/arm64
 INSECURE_SKIP_VERIFY_REGISTRIES ?= registry.k8s.io
 NODE_SELECTOR ?= kubernetes.io/os=linux
-SEED_NODE_SELECTOR ?= prepuller.theatreofdreams.io/seed=true
+SEED_NODE_SELECTOR ?= prepuller.theatreofdreams.dev/seed=true
 KIND_SEED_NODE ?= $(KIND_CLUSTER_NAME)-control-plane
 
 .PHONY: help
@@ -118,15 +118,15 @@ endif
 auth-check:
 	$(KUBECTL) auth can-i list pods --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
 	$(KUBECTL) auth can-i watch pods --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
-	$(KUBECTL) auth can-i list images.prepuller.theatreofdreams.io --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
-	$(KUBECTL) auth can-i watch images.prepuller.theatreofdreams.io --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
+	$(KUBECTL) auth can-i list images.prepuller.theatreofdreams.dev --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
+	$(KUBECTL) auth can-i watch images.prepuller.theatreofdreams.dev --as=system:serviceaccount:prepuller-system:prepuller-controller-manager
 	$(KUBECTL) auth can-i get nodes --as=system:serviceaccount:prepuller-system:prepuller-agent
 	$(KUBECTL) auth can-i list pods --as=system:serviceaccount:prepuller-system:prepuller-agent
-	$(KUBECTL) auth can-i list images.prepuller.theatreofdreams.io --as=system:serviceaccount:prepuller-system:prepuller-agent
+	$(KUBECTL) auth can-i list images.prepuller.theatreofdreams.dev --as=system:serviceaccount:prepuller-system:prepuller-agent
 
 .PHONY: label-kind-seed
 label-kind-seed:
-	$(KUBECTL) label node "$(KIND_SEED_NODE)" prepuller.theatreofdreams.io/seed=true --overwrite
+	$(KUBECTL) label node "$(KIND_SEED_NODE)" prepuller.theatreofdreams.dev/seed=true --overwrite
 
 .PHONY: deploy-nginx
 deploy-nginx:
@@ -135,7 +135,7 @@ deploy-nginx:
 
 .PHONY: images
 images:
-	$(KUBECTL) get images.prepuller.theatreofdreams.io
+	$(KUBECTL) get images.prepuller.theatreofdreams.dev
 
 .PHONY: kind-delete
 kind-delete:

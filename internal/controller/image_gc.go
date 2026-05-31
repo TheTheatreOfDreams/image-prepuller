@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	imagev1 "github.com/TheTheatreOfDreams/prepuller/api/v1"
+	imagev1 "github.com/TheatreOfDreamsDev/prepuller/api/v1"
 )
 
 const DefaultImageTTL = 7 * 24 * time.Hour
@@ -21,7 +21,7 @@ type ImageGarbageCollector struct {
 	Now        func() time.Time
 }
 
-// +kubebuilder:rbac:groups=prepuller.theatreofdreams.io,resources=images,verbs=get;list;watch;delete
+// +kubebuilder:rbac:groups=prepuller.theatreofdreams.dev,resources=images,verbs=get;list;watch;delete
 
 func (g *ImageGarbageCollector) Start(ctx context.Context) error {
 	if err := g.Sync(ctx); err != nil {

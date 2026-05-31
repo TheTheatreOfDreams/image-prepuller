@@ -1,4 +1,4 @@
-apiVersion: prepuller.theatreofdreams.io/v1alpha1
+apiVersion: prepuller.theatreofdreams.dev/v1alpha1
 kind: Image
 metadata:
   name: img-sample

@@ -1,3 +1,6 @@
+GOLANGCI_LINT := golangci-lint
+GOLANGCI_CONFIG ?= ../actions/go/lint/.golangci.yml
+GO := go
 KIND_CLUSTER_NAME ?= prepuller
 KIND_CONFIG ?= config/kind/cluster.yaml
 KUBE_CONTEXT ?= kind-$(KIND_CLUSTER_NAME)
@@ -10,9 +13,25 @@ NODE_SELECTOR ?= kubernetes.io/os=linux
 SEED_NODE_SELECTOR ?= prepuller.theatreofdreams.dev/seed=true
 KIND_SEED_NODE ?= $(KIND_CLUSTER_NAME)-control-plane
 
+.PHONY: lint
+lint:
+	$(GOLANGCI_LINT) run \
+		--config $(GOLANGCI_CONFIG) \
+		--show-stats
+
+.PHONY: test
+test:
+	$(GO) test -v -race --count=1 -timeout 5m ./...
+
+.PHONY: check
+check: lint test
+
 .PHONY: help
 help:
 	@echo "Available targets:"
+	@echo "  make lint          Run Go linters"
+	@echo "  make test          Run Go tests"
+	@echo "  make check         Run lint and tests"
 	@echo "  make kind-up       Create kind cluster, deploy operator from GHCR, and deploy nginx"
 	@echo "  make kind-up-private Create kind cluster, deploy private GHCR operator, and deploy nginx"
 	@echo "  make kind-create   Create the kind cluster if it does not exist"
